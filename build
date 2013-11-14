@@ -113,13 +113,14 @@ make_c() {
 
     echo "Building C modules from $srcdir"
     make distclean || true
-    ./00boot
-    ./configure --prefix=$prefix $flags CC="$cc" CFLAGS="$cflags"
-    make -j $nprocs
-    make install
+    ./00boot || fail "00boot failed."
+    ./configure --prefix=$prefix $flags CC="$cc" CFLAGS="$cflags" || fail "configure failed."
+    make -j $nprocs || fail "make failed."
+    make install || fail "make install failed."
 
     # Generate lscsoftrc.
     . $scriptdir/generate-rc $prefix $lscsoftrc
+    return 0
 }
 
 make_python() {
@@ -129,21 +130,25 @@ make_python() {
     echo "Building $srcdir/pylal"
     cd $srcdir/pylal
     rm -rf build
-    python setup.py install --prefix=$prefix
+    python setup.py install --prefix=$prefix || fail "Pylal setup.py failed."
     . $lscsoftrc
 
     echo "Building $srcdir/glue"
     cd $srcdir/glue
     rm -rf build
-    python setup.py install --prefix=$prefix
+    python setup.py install --prefix=$prefix || fail "Glue setup.py failed."
     . $lscsoftrc
+
+    return 0
 }
 
 if [[ ! $buildc && ! $buildpython ]]; then
     # Build both.
-    make_c
-    make_python
+    make_c || fail "C build failed."
+    make_python || fail "Python build failed."
 else
-    [[ $buildc ]] && make_c
-    [[ $buildpython ]] && make_python
+    [[ $buildc ]] && make_c || fail "C build failed."
+    [[ $buildpython ]] && make_python || fail "Python build failed."
 fi
+
+echo "All done!"
