@@ -2,35 +2,43 @@
 
 set -e
 
+# Remember script directory.
+SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 # Source directory
 if [[ ! -d $1 ]]; then
     echo "Invalid source directory!"
 fi
 SRCDIR=$(readlink -f $1)
-cd $SRCDIR
-
-#BRANCHNAME=$(basename $(git symbolic-ref HEAD))
-#echo "Installing lsc software from $BRANCHNAME branch."
 
 # This is where LAL Suite will go.
 if [[ -z $LSCSOFT_ROOTDIR ]]; then
     echo "LSCSOFT_ROOTDIR not specified!"
     exit 1
 fi
-#ROOTDIR=$LSCSOFT_ROOTDIR/$BRANCHNAME
 ROOTDIR=$LSCSOFT_ROOTDIR
 
+#BRANCHNAME=$(basename $(git symbolic-ref HEAD))
+#echo "Installing lsc software from $BRANCHNAME branch."
+#ROOTDIR=$LSCSOFT_ROOTDIR/$BRANCHNAME
+
 echo "Building from $SRCDIR; installing to $ROOTDIR."
+cd $SRCDIR
 
 # Number of parallel processes in make.
 NPROCS=4
 
-# Default CFLAGS
-CC=clang
+# Default CFLAGS. Use clang if it's available.
 CFLAGS="-march=native -g"
+if [[ -x $(which clang) ]]; then
+    CC=clang
+fi
 
-# Common flags to every configure process
+# Common flags to every configure process.
 COMMON_CONFIG_FLAGS="--enable-swig-python --enable-mpi --disable-laldetchar"
+
+# lscsoftrc location.
+RCFILE=$ROOTDIR/etc/lscsoftrc
 
 make_c() {
     make distclean || true
@@ -38,20 +46,26 @@ make_c() {
     ./configure --prefix=$ROOTDIR $COMMON_CONFIG_FLAGS CC="$CC" CFLAGS="$CFLAGS"
     make -j $NPROCS
     make install
+
+    # Generate lscsoftrc.
+    . $SCRIPTDIR/generate-rc.sh $ROOTDIR $RCFILE
 }
 
 make_python() {
-    . $ROOTDIR/etc/lscsoftrc
+    if [[ ! -f $RCFILE ]]; then
+        fail "Could not find $RCFILE."
+    fi
+    . $RCFILE
 
     cd $SRCDIR/pylal
     rm -rf build
     python setup.py install --prefix=$ROOTDIR
-    . $ROOTDIR/etc/lscsoftrc
+    . $RCFILE
 
     cd $SRCDIR/glue
     rm -rf build
     python setup.py install --prefix=$ROOTDIR
-    . $ROOTDIR/etc/lscsoftrc
+    . $RCFILE
 }
 
 shift

@@ -23,8 +23,8 @@ capture_uninstall()
 
     local orig_rm=$(which rm)
     cat > rm <<EOF
-    echo "rm \$*" 1>&3
-    exit 0
+echo "rm \$*" 1>&3
+exit 0
 EOF
     chmod +x rm
 
@@ -47,10 +47,9 @@ install_dep()
     local uninstall=$2
     local prefix=$3
     local flags=$4
-    local orig_pwd=$(pwd)
 
     mkdir -p $prefix
-    cd $src
+    pushd $src > /dev/null
     make distclean || true
     ./configure --prefix=$prefix $flags || fail
     make || fail
@@ -60,7 +59,7 @@ install_dep()
     capture_uninstall $uninstall || fail
     echo "Uninstall script: $uninstall"
 
-    cd $orig_pwd
+    popd > /dev/null
 }
 
 libframe=$1
