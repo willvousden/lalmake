@@ -144,11 +144,6 @@ if [[ ! $buildc && ! $buildpython ]]; then
     make_c
     make_python
 else
-    if [[ $buildc ]]; then
-        make_c
-    fi
-
-    if [[ $buildpython ]]; then
-        make_python
-    fi
+    [[ $buildc ]] && make_c
+    [[ $buildpython ]] && make_python
 fi
