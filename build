@@ -87,6 +87,11 @@ if [[ ! $cc ]]; then
         cc=clang
     fi
 fi
+if [[ $cc ]]; then
+    echo "Building with $cc $cflags."
+else
+    echo "Building with default CC with $cflags."
+fi
 
 # Common flags to every configure process.
 if [[ ! $flags ]]; then
