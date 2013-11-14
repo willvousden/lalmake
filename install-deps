@@ -7,23 +7,31 @@ fail()
     exit 1
 }
 
+prog=$(basename "$0")
 usage()
 {
     cat <<EOF
-Usage: install-deps [options] <lscsoft-dir>
+Usage: $prog [args] <lscsoft-dir>
 
-Options:
+Positional arguments:
+
+    <lscsoft-dir>               The installation prefix for LALSuite.
+
+Optional arguments:
 
     --frame <src-dir>           Path to libframe source directory.
     --metaio <src-dir>          Path to metaio source directory.
     --user-env <src-dir>        Path to lscsoft-user-env directory.
+    -n, --nprocs <n>            Number of build processes to spawn. Defaults to 4.
+    -C, --cc                    The C compiler to use. Defaults to clang if available, otherwise system default.
     -h, --help                  Display this help message.
+
+Any combination of --frame, --metaio, and --user-env may be given.
 EOF
     exit 0
 }
 
-prog=$(basename "$0")
-options=$(getopt --name "$prog" --options hf:m:u: --longoptions help,frame:,metaio:,user-env: -- $@ 2> /dev/null) || fail "Couldn't parse options."
+options=$(getopt --name "$prog" --options f:m:u:n:c:h --longoptions frame:,metaio:,user-env:,nprocs:,cc:,help -- $@ 2> /dev/null) || fail "Couldn't parse options."
 eval set -- "$options"
 if [[ $# < 2 ]]; then
     usage
@@ -33,6 +41,8 @@ else
             -f | --frame) libframe=$2; shift;;
             -m | --metaio) metaio=$2; shift;;
             -u | --user-env) lsc_user_env=$2; shift;;
+            -n | --nprocs) nprocs=$2; shift;;
+            -C | --cc) cc=$2; shift;;
             -h | --help) usage;;
             --) shift; break;;
         esac
@@ -43,10 +53,24 @@ fi
 root=$1
 [[ ! $root ]] && fail "No root directory given."
 
+# Number of build processes.
+if [[ ! $nprocs ]]; then
+    nprocs=4
+fi
+
+# Compiler details.
+cflags="-march=native -g"
+if [[ ! $cc ]]; then
+    # User didn't specify CC at command line.
+    if [[ -x $(which clang) ]]; then
+        cc=clang
+    fi
+fi
+
 capture_uninstall()
 {
     # Takes the the name/path of the script to be generated as an argument.
-    local target=$1:-"./uninstall.sh"}
+    local target=$1
 
     # Make sure directory exists (and file doesn't).
     if [[ ! -d $(dirname $target) ]]; then
@@ -64,7 +88,7 @@ exit 0
 EOF
     chmod +x rm
 
-    orig_PATH=$PATH
+    local orig_PATH=$PATH
     PATH=$(pwd):$PATH
     export PATH
     make uninstall 3>> $target
@@ -84,17 +108,18 @@ install_dep()
     local prefix=$3
     local flags=$4
 
+    # Check source directory.
     [[ ! -d $src ]] && fail "Invalid source directory: $src"
 
     echo "Installing $src to $prefix"
     mkdir -p $prefix
     pushd $src > /dev/null
     make distclean || true
-    ./configure --prefix=$prefix $flags || fail
-    make || fail
+    ./configure --prefix=$prefix $flags CC="$cc" CFLAGS="$cflags" || fail
+    make -j $nprocs || fail
     make install || fail
 
-     Generate uninstall script.
+    # Generate uninstall script.
     capture_uninstall $uninstall || fail
     echo "Uninstall script: $uninstall"
 
@@ -116,6 +141,6 @@ if [[ $lsc_user_env ]]; then
     install_dep $lsc_user_env $uninstall_dir/lscsoft-user-env.sh $root
 fi
 
-if [[ -z $installed ]]; then
+if [[ ! $installed ]]; then
     echo "Nothing to be done."
 fi

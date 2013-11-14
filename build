@@ -7,25 +7,31 @@ fail()
     exit 1
 }
 
+prog=$(basename "$0")
 usage()
 {
     cat <<EOF
-Usage: build [options]
+Usage: $prog [args]
 
-Options:
+Arguments:
 
-    --prefix <prefix>       Installation prefix for LALSuite.
-    -c, --c                 Build C modules.
-    -p, --python            Build Python modules.
-    -s, --src <src-dir>     Build from <src-dir>.
-    -n, -nprocs <n>         Number of build processes to spawn.
-    -h, --help              Display this help message.
+    --prefix <prefix>           Installation prefix for LALSuite.
+    --src <src-dir>             Build from <src-dir>.
+
+Optional arguments:
+    -c, --c                     Build C modules.
+    -p, --python                Build Python modules.
+    -n, --nprocs <n>            Number of build processes to spawn. Defaults to 4.
+    -C, --cc                    The C compiler to use. Defaults to clang if available, otherwise system default.
+    -h, --help                  Display this help message.
+
+By default, both C and Python modules are built; specify one to build only that one.
 EOF
     exit 0
 }
 
 prog=$(basename "$0")
-options=$(getopt --name "$prog" --options hcps:n --longoptions help,c,python,prefix:,src:,nprocs -- $@ 2> /dev/null) || fail "Couldn't parse options."
+options=$(getopt --name "$prog" --options cpn:C:F:h --longoptions c,python,prefix:,src:,nprocs:,cc:,flags:,help -- $@ 2> /dev/null) || fail "Couldn't parse options."
 eval set -- "$options"
 if [[ $# < 2 ]]; then
     usage
@@ -35,20 +41,20 @@ else
             --prefix)
                 prefix=$2
                 shift;;
+            --src)
+                srcdir=$2
+                shift;;
             -c | --c)
                 buildc=true;;
             -p | --python)
                 buildpython=true;;
-            -s | --src)
-                srcdir=$2
-                shift;;
             -n | --nprocs)
                 nprocs=$2
                 shift;;
-            --cc)
+            -C | --cc)
                 cc=$2
                 shift;;
-            --flags)
+            -F | --flags)
                 flags=$2
                 shift;;
             -h | --help)
@@ -64,15 +70,16 @@ fi
 set -e
 
 # Check source directory and prefix.
-[[ -z $prefix ]] && fail "Prefix not specified!"
+[[ ! $prefix ]] && fail "Prefix not specified!"
 [[ ! -d $srcdir ]] && fail "Invalid source directory!"
 srcdir=$(readlink -f $srcdir)
 
 # Remember script directory.
 scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+# Compiler details.
 cflags="-march=native -g"
-if [[ -z $cc ]]; then
+if [[ ! $cc ]]; then
     # User didn't specify CC at command line.
     if [[ -x $(which clang) ]]; then
         cc=clang
@@ -80,13 +87,13 @@ if [[ -z $cc ]]; then
 fi
 
 # Common flags to every configure process.
-if [[ -z $flags ]]; then
+if [[ ! $flags ]]; then
     flags="--enable-swig-python --enable-mpi --disable-laldetchar"
 fi
 
 # Number of build processes.
-if [[ -z $nprocs ]]; then
-    nprocs=1
+if [[ ! $nprocs ]]; then
+    nprocs=4
 fi
 
 # lscsoftrc location.
@@ -125,7 +132,7 @@ make_python() {
     . $lscsoftrc
 }
 
-if [[ -z $buildc && -z $buildpython ]]; then
+if [[ ! $buildc && ! $buildpython ]]; then
     # Build both.
     make_c
     make_python
