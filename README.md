@@ -8,7 +8,7 @@ Tools
 
 The following tools are available:
 
-* `install-deps`: Installs *LALSuite* dependencies: `libframe`, `metaio`, and `lscsoft-user-env`.
+* `build-deps`: Builds and installs *LALSuite* dependencies: `libframe`, `metaio`, and `lscsoft-user-env`.
 * `build`: Builds and installs *LALSuite* from source.
 
-See `install-deps --help` and `build --help` for usage instructions.
+See `build-deps --help` and `build --help` for usage instructions.
