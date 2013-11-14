@@ -27,35 +27,39 @@ EOF
 prog=$(basename "$0")
 options=$(getopt --name "$prog" --options hcps:n --longoptions help,c,python,prefix:,src:,nprocs -- $@ 2> /dev/null) || fail "Couldn't parse options."
 eval set -- "$options"
-while [[ $# > 0 ]]; do
-    case "$1" in
-        --prefix)
-            prefix=$2
-            shift;;
-        -c | --c)
-            buildc=true;;
-        -p | --python)
-            buildpython=true;;
-        -s | --src)
-            srcdir=$2
-            shift;;
-        -n | --nprocs)
-            nprocs=$2
-            shift;;
-        --cc)
-            cc=$2
-            shift;;
-        --flags)
-            flags=$2
-            shift;;
-        -h | --help)
-            usage;;
-        --)
-            shift
-            break;;
-    esac
-    shift
-done
+if [[ $# < 2 ]]; then
+    usage
+else
+    while [[ $# > 0 ]]; do
+        case "$1" in
+            --prefix)
+                prefix=$2
+                shift;;
+            -c | --c)
+                buildc=true;;
+            -p | --python)
+                buildpython=true;;
+            -s | --src)
+                srcdir=$2
+                shift;;
+            -n | --nprocs)
+                nprocs=$2
+                shift;;
+            --cc)
+                cc=$2
+                shift;;
+            --flags)
+                flags=$2
+                shift;;
+            -h | --help)
+                usage;;
+            --)
+                shift
+                break;;
+        esac
+        shift
+    done
+fi
 
 set -e
 

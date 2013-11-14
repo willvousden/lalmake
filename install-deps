@@ -7,6 +7,42 @@ fail()
     exit 1
 }
 
+usage()
+{
+    cat <<EOF
+Usage: install-deps [options] <lscsoft-dir>
+
+Options:
+
+    --frame <src-dir>           Path to libframe source directory.
+    --metaio <src-dir>          Path to metaio source directory.
+    --user-env <src-dir>        Path to lscsoft-user-env directory.
+    -h, --help                  Display this help message.
+EOF
+    exit 0
+}
+
+prog=$(basename "$0")
+options=$(getopt --name "$prog" --options hf:m:u: --longoptions help,frame:,metaio:,user-env: -- $@ 2> /dev/null) || fail "Couldn't parse options."
+eval set -- "$options"
+if [[ $# < 2 ]]; then
+    usage
+else
+    while [[ $# > 0 ]]; do
+        case "$1" in
+            -f | --frame) libframe=$2; shift;;
+            -m | --metaio) metaio=$2; shift;;
+            -u | --user-env) lsc_user_env=$2; shift;;
+            -h | --help) usage;;
+            --) shift; break;;
+        esac
+        shift
+    done
+fi
+
+root=$1
+[[ ! $root ]] && fail "No root directory given."
+
 capture_uninstall()
 {
     # Takes the the name/path of the script to be generated as an argument.
@@ -64,30 +100,6 @@ install_dep()
 
     popd > /dev/null
 }
-
-usage()
-{
-    cat <<EOF
-Usage: install-deps [--frame <src-dir> | --metaio <src-dir> | --user-env <src-dir>] <lscsoft-dir>
-EOF
-    exit 0
-}
-
-prog=$(basename "$0")
-options=$(getopt --name "$prog" --options hf:m:u: --longoptions help,frame:,metaio:,user-env: -- $@ 2> /dev/null) || fail "Couldn't parse options."
-eval set -- "$options"
-while [[ $# > 0 ]]; do
-    case "$1" in
-        -f | --frame) libframe=$2; shift;;
-        -m | --metaio) metaio=$2; shift;;
-        -u | --user-env) lsc_user_env=$2; shift;;
-        -h | --help) usage;;
-        --) shift; break;;
-    esac
-    shift
-done
-root=$1
-[[ ! $root ]] && fail "No root directory given."
 
 installed=
 uninstall_dir=$root/uninstall
