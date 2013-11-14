@@ -71,10 +71,6 @@ srcdir=$(readlink -f $srcdir)
 # Remember script directory.
 scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-#BRANCHNAME=$(basename $(git symbolic-ref HEAD))
-#echo "Installing lsc software from $BRANCHNAME branch."
-#prefix=$LSCSOFT_ROOTDIR/$BRANCHNAME
-
 cflags="-march=native -g"
 if [[ -z $cc ]]; then
     # User didn't specify CC at command line.
