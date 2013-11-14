@@ -13,6 +13,8 @@ usage()
     cat <<EOF
 Usage: $prog [args] <lscsoft-dir>
 
+Builds and installs the requested dependencies for LALSuite.
+
 Positional arguments:
 
     <lscsoft-dir>               The installation prefix for LALSuite.

@@ -13,6 +13,8 @@ usage()
     cat <<EOF
 Usage: $prog [args]
 
+Builds and installs LALSuite.
+
 Arguments:
 
     --prefix <prefix>           Installation prefix for LALSuite.
