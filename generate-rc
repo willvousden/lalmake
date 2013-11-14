@@ -20,6 +20,7 @@ mkdir -p $(dirname $file)
 echo -n > $file
 
 cat <<EOF >> $file
+#!/usr/bin/env bash
 export LSCSOFT_LOCATION=$rootdir
 
 # Set up individual modules for development...
