@@ -12,25 +12,21 @@ if [[ -z $2 ]]; then
     exit 1
 fi
 
-#SRCDIR=${1:-LSCSOFT_SRCDIR}
-#BRANCHNAME=$(basename $(git --git-dir=$SRCDIR/.git --work-tree=$SRCDIR symbolic-ref HEAD))
-#echo "Setting up lscsoftrc for $BRANCHNAME branch."
-#ROOTDIR=$LSCSOFT_ROOTDIR/$BRANCHNAME
-ROOTDIR=$1
-FILE=$2
+rootdir=$1
+file=$2
 
-echo "Generating $FILE"
-mkdir -p $(dirname $FILE)
-echo -n > $FILE
+echo "Generating $file"
+mkdir -p $(dirname $file)
+echo -n > $file
 
-cat <<EOF >> $FILE
-export LSCSOFT_LOCATION=$ROOTDIR
+cat <<EOF >> $file
+export LSCSOFT_LOCATION=$rootdir
 
 # Set up individual modules for development...
 
 EOF
 
-cat <<EOF >> $FILE
+cat <<EOF >> $file
 if [[ -z \$LAL_LOCATION ]]; then
     export LAL_LOCATION=\$LSCSOFT_LOCATION
     . \$LAL_LOCATION/etc/lal-user-env.sh &> /dev/null || true
@@ -38,7 +34,7 @@ fi
 
 EOF
 
-cat <<EOF >> $FILE
+cat <<EOF >> $file
 if [[ -z \$LALFRAME_LOCATION ]]; then
     export LALFRAME_LOCATION=\$LSCSOFT_LOCATION
     . \$LALFRAME_LOCATION/etc/lalframe-user-env.sh &> /dev/null || true
@@ -46,7 +42,7 @@ fi
 
 EOF
 
-cat <<EOF >> $FILE
+cat <<EOF >> $file
 if [[ -z \$LALMETAIO_LOCATION ]]; then
     export LALMETAIO_LOCATION=\$LSCSOFT_LOCATION
     . \$LALMETAIO_LOCATION/etc/lalmetaio-user-env.sh &> /dev/null || true
@@ -54,7 +50,7 @@ fi
 
 EOF
 
-cat <<EOF >> $FILE
+cat <<EOF >> $file
 if [[ -z \$LALSIMULATION_LOCATION ]]; then
     export LALSIMULATION_LOCATION=\$LSCSOFT_LOCATION
     . \$LALSIMULATION_LOCATION/etc/lalsimulation-user-env.sh &> /dev/null || true
@@ -62,7 +58,7 @@ fi
 
 EOF
 
-cat <<EOF >> $FILE
+cat <<EOF >> $file
 if [[ -z \$LALBURST_LOCATION ]]; then
     export LALBURST_LOCATION=\$LSCSOFT_LOCATION
     . \$LALBURST_LOCATION/etc/lalburst-user-env.sh &> /dev/null || true
@@ -70,7 +66,7 @@ fi
 
 EOF
 
-cat <<EOF >> $FILE
+cat <<EOF >> $file
 if [[ -z \$LALINSPIRAL_LOCATION ]]; then
     export LALINSPIRAL_LOCATION=\$LSCSOFT_LOCATION
     . \$LALINSPIRAL_LOCATION/etc/lalinspiral-user-env.sh &> /dev/null || true
@@ -78,7 +74,7 @@ fi
 
 EOF
 
-cat <<EOF >> $FILE
+cat <<EOF >> $file
 if [[ -z \$LALSTOCHASTIC_LOCATION ]]; then
     export LALSTOCHASTIC_LOCATION=\$LSCSOFT_LOCATION
     . \$LALSTOCHASTIC_LOCATION/etc/lalstochastic-user-env.sh &> /dev/null || true
@@ -86,7 +82,7 @@ fi
 
 EOF
 
-cat <<EOF >> $FILE
+cat <<EOF >> $file
 if [[ -z \$LALPULSAR_LOCATION ]]; then
     export LALPULSAR_LOCATION=\$LSCSOFT_LOCATION
     . \$LALPULSAR_LOCATION/etc/lalpulsar-user-env.sh &> /dev/null || true
@@ -94,7 +90,7 @@ fi
 
 EOF
 
-cat <<EOF >> $FILE
+cat <<EOF >> $file
 if [[ -z \$LALINFERENCE_LOCATION ]]; then
     export LALINFERENCE_LOCATION=\$LSCSOFT_LOCATION
     . \$LALINFERENCE_LOCATION/etc/lalinference-user-env.sh &> /dev/null || true
@@ -102,7 +98,7 @@ fi
 
 EOF
 
-cat <<EOF >> $FILE
+cat <<EOF >> $file
 if [[ -z \$LALAPPS_LOCATION ]]; then
     export LALAPPS_LOCATION=\$LSCSOFT_LOCATION
     . \$LALAPPS_LOCATION/etc/lalapps-user-env.sh &> /dev/null || true
@@ -110,7 +106,7 @@ fi
 
 EOF
 
-cat <<EOF >> $FILE
+cat <<EOF >> $file
 if [[ -z \$PYLAL_LOCATION ]]; then
     export PYLAL_LOCATION=\$LSCSOFT_LOCATION
     . \$PYLAL_LOCATION/etc/pylal-user-env.sh &> /dev/null || true
@@ -118,7 +114,7 @@ fi
 
 EOF
 
-cat <<EOF >> $FILE
+cat <<EOF >> $file
 if [[ -z \$GLUE_LOCATION ]]; then
     export GLUE_LOCATION=\$LSCSOFT_LOCATION
     . \$GLUE_LOCATION/etc/glue-user-env.sh &> /dev/null || true
