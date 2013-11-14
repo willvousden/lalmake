@@ -48,7 +48,7 @@ make_c() {
     make install
 
     # Generate lscsoftrc.
-    . $SCRIPTDIR/generate-rc.sh $ROOTDIR $RCFILE
+    . $SCRIPTDIR/generate-rc $ROOTDIR $RCFILE
 }
 
 make_python() {
@@ -81,7 +81,7 @@ else
                 make_python;;
             *)
                 echo "Unrecognized argument \"$1\".  Usage:"
-                echo "build.sh [c] [python]"
+                echo "build [c] [python]"
                 exit 1
         esac
         shift
