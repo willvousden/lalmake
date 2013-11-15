@@ -2,12 +2,12 @@
 
 set -e
 
-if [[ -z $1 ]]; then
+if [[ ! $1 ]]; then
     echo "Install location not specified!"
     exit 1
 fi
 
-if [[ -z $2 ]]; then
+if [[ ! $2 ]]; then
     echo "Target file not specified!"
     exit 1
 fi
@@ -27,7 +27,7 @@ export LSCSOFT_LOCATION=$rootdir
 EOF
 
 cat <<EOF >> $file
-if [[ -z \$LAL_LOCATION ]]; then
+if [[ ! \$LAL_LOCATION ]]; then
     export LAL_LOCATION=\$LSCSOFT_LOCATION
     . \$LAL_LOCATION/etc/lal-user-env.sh &> /dev/null || true
 fi
@@ -35,7 +35,7 @@ fi
 EOF
 
 cat <<EOF >> $file
-if [[ -z \$LALFRAME_LOCATION ]]; then
+if [[ ! \$LALFRAME_LOCATION ]]; then
     export LALFRAME_LOCATION=\$LSCSOFT_LOCATION
     . \$LALFRAME_LOCATION/etc/lalframe-user-env.sh &> /dev/null || true
 fi
@@ -43,7 +43,7 @@ fi
 EOF
 
 cat <<EOF >> $file
-if [[ -z \$LALMETAIO_LOCATION ]]; then
+if [[ ! \$LALMETAIO_LOCATION ]]; then
     export LALMETAIO_LOCATION=\$LSCSOFT_LOCATION
     . \$LALMETAIO_LOCATION/etc/lalmetaio-user-env.sh &> /dev/null || true
 fi
@@ -51,7 +51,7 @@ fi
 EOF
 
 cat <<EOF >> $file
-if [[ -z \$LALSIMULATION_LOCATION ]]; then
+if [[ ! \$LALSIMULATION_LOCATION ]]; then
     export LALSIMULATION_LOCATION=\$LSCSOFT_LOCATION
     . \$LALSIMULATION_LOCATION/etc/lalsimulation-user-env.sh &> /dev/null || true
 fi
@@ -59,7 +59,7 @@ fi
 EOF
 
 cat <<EOF >> $file
-if [[ -z \$LALBURST_LOCATION ]]; then
+if [[ ! \$LALBURST_LOCATION ]]; then
     export LALBURST_LOCATION=\$LSCSOFT_LOCATION
     . \$LALBURST_LOCATION/etc/lalburst-user-env.sh &> /dev/null || true
 fi
@@ -67,7 +67,7 @@ fi
 EOF
 
 cat <<EOF >> $file
-if [[ -z \$LALINSPIRAL_LOCATION ]]; then
+if [[ ! \$LALINSPIRAL_LOCATION ]]; then
     export LALINSPIRAL_LOCATION=\$LSCSOFT_LOCATION
     . \$LALINSPIRAL_LOCATION/etc/lalinspiral-user-env.sh &> /dev/null || true
 fi
@@ -75,7 +75,7 @@ fi
 EOF
 
 cat <<EOF >> $file
-if [[ -z \$LALSTOCHASTIC_LOCATION ]]; then
+if [[ ! \$LALSTOCHASTIC_LOCATION ]]; then
     export LALSTOCHASTIC_LOCATION=\$LSCSOFT_LOCATION
     . \$LALSTOCHASTIC_LOCATION/etc/lalstochastic-user-env.sh &> /dev/null || true
 fi
@@ -83,7 +83,7 @@ fi
 EOF
 
 cat <<EOF >> $file
-if [[ -z \$LALPULSAR_LOCATION ]]; then
+if [[ ! \$LALPULSAR_LOCATION ]]; then
     export LALPULSAR_LOCATION=\$LSCSOFT_LOCATION
     . \$LALPULSAR_LOCATION/etc/lalpulsar-user-env.sh &> /dev/null || true
 fi
@@ -91,7 +91,7 @@ fi
 EOF
 
 cat <<EOF >> $file
-if [[ -z \$LALINFERENCE_LOCATION ]]; then
+if [[ ! \$LALINFERENCE_LOCATION ]]; then
     export LALINFERENCE_LOCATION=\$LSCSOFT_LOCATION
     . \$LALINFERENCE_LOCATION/etc/lalinference-user-env.sh &> /dev/null || true
 fi
@@ -99,7 +99,7 @@ fi
 EOF
 
 cat <<EOF >> $file
-if [[ -z \$LALAPPS_LOCATION ]]; then
+if [[ ! \$LALAPPS_LOCATION ]]; then
     export LALAPPS_LOCATION=\$LSCSOFT_LOCATION
     . \$LALAPPS_LOCATION/etc/lalapps-user-env.sh &> /dev/null || true
 fi
@@ -107,7 +107,7 @@ fi
 EOF
 
 cat <<EOF >> $file
-if [[ -z \$PYLAL_LOCATION ]]; then
+if [[ ! \$PYLAL_LOCATION ]]; then
     export PYLAL_LOCATION=\$LSCSOFT_LOCATION
     . \$PYLAL_LOCATION/etc/pylal-user-env.sh &> /dev/null || true
 fi
@@ -115,7 +115,7 @@ fi
 EOF
 
 cat <<EOF >> $file
-if [[ -z \$GLUE_LOCATION ]]; then
+if [[ ! \$GLUE_LOCATION ]]; then
     export GLUE_LOCATION=\$LSCSOFT_LOCATION
     . \$GLUE_LOCATION/etc/glue-user-env.sh &> /dev/null || true
 fi

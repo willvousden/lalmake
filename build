@@ -95,6 +95,11 @@ if [[ ! $cc ]]; then
         cc=clang
     fi
 fi
+if [[ $cc ]]; then
+    echo "Building with $cc $cflags."
+else
+    echo "Building with default CC with $cflags."
+fi
 
 # Common flags to every configure process.
 if [[ ! $flags ]]; then
@@ -118,10 +123,10 @@ make_c() {
         cd $srcdir
         if [[ ! $dry ]]; then
             make distclean || true
-            ./00boot
-            ./configure --prefix=$prefix $flags CC="$cc" CFLAGS="$cflags"
-            make -j $nprocs
-            make install
+            ./00boot || fail
+            ./configure --prefix=$prefix $flags CC="$cc" CFLAGS="$cflags" || fail
+            make -j $nprocs || fail
+            make install || fail
         fi
     else
         # Build only the requested C modules.
@@ -134,10 +139,10 @@ make_c() {
             cd $dir
             if [[ ! $dry ]]; then
                 make distclean || true
-                ./00boot
-                ./configure --prefix=$prefix $flags CC="$cc" CFLAGS="$cflags"
-                make -j $nprocs
-                make install
+                ./00boot || fail
+                ./configure --prefix=$prefix $flags CC="$cc" CFLAGS="$cflags" || fail
+                make -j $nprocs || fail
+                make install || fail
             fi
         done
     fi
@@ -164,7 +169,7 @@ make_python() {
         cd $dir
         if [[ ! $dry ]]; then
             rm -rf build
-            python setup.py install --prefix=$prefix
+            python setup.py install --prefix=$prefix || fail
             . $lscsoftrc
         fi
     done
@@ -205,3 +210,5 @@ else
         [[ $buildpython ]] && make_python
     fi
 fi
+
+echo "All done!"
