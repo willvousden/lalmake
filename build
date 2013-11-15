@@ -17,15 +17,17 @@ Builds and installs LALSuite.
 
 Arguments:
 
-    --prefix <prefix>           Installation prefix for LALSuite.
-    --src <src-dir>             Build from <src-dir>.
+    --prefix <prefix>                   Installation prefix for LALSuite.
+    --src <src-dir>                     Build from <src-dir>.
 
 Optional arguments:
-    -c, --c                     Build C modules.
-    -p, --python                Build Python modules.
-    -n, --nprocs <n>            Number of build processes to spawn. Defaults to 4.
-    -C, --cc                    The C compiler to use. Defaults to clang if available, otherwise system default.
-    -h, --help                  Display this help message.
+    -m, --modules <mod1,mod2,...>       Individual modules to build
+    -c, --c                             Build all C modules.
+    -p, --python                        Build all Python modules.
+    -n, --nprocs <n>                    Number of build processes to spawn. Defaults to 4.
+    -C, --cc                            The C compiler to use. Defaults to clang if available, otherwise system default.
+    -d, --dry                           Dry run: go through the motions but don't do anything.
+    -h, --help                          Display this help message.
 
 By default, both C and Python modules are built; specify one to build only that one.
 EOF
@@ -33,11 +35,12 @@ EOF
 }
 
 prog=$(basename "$0")
-options=$(getopt --name "$prog" --options cpn:C:F:h --longoptions c,python,prefix:,src:,nprocs:,cc:,flags:,help -- $@ 2> /dev/null) || fail "Couldn't parse options."
+options=$(getopt --name "$prog" --options m:cpn:C:F:dh --longoptions modules:,c,python,prefix:,src:,nprocs:,cc:,flags:,dry,help -- $@ 2> /dev/null) || fail "Couldn't parse options."
 eval set -- "$options"
 if [[ $# < 2 ]]; then
     usage
 else
+    echo $@
     while [[ $# > 0 ]]; do
         case "$1" in
             --prefix)
@@ -45,6 +48,9 @@ else
                 shift;;
             --src)
                 srcdir=$2
+                shift;;
+            -m | --modules)
+                modules=$(echo $2 | tr ',' ' ')
                 shift;;
             -c | --c)
                 buildc=true;;
@@ -59,6 +65,8 @@ else
             -F | --flags)
                 flags=$2
                 shift;;
+            -d | --dry)
+                dry=true;;
             -h | --help)
                 usage;;
             --)
@@ -98,52 +106,102 @@ if [[ ! $nprocs ]]; then
     nprocs=4
 fi
 
-# lscsoftrc location.
-lscsoftrc=$prefix/etc/lscsoftrc
-
 echo "Installing to $prefix"
 
+# Code to install C modules. Can either build the whole lot (top-level make) or individual modules.
+cmodules="lalframe lalmetaio lalsimulation lalburst lalinspiral lalstochastic lalpulsar lalinference lalapps"
 make_c() {
-    cd $srcdir
+    if [[ $# == 0 ]]; then
+        # No modules requested, so do a full build of all C modules.
+        echo "Building C modules from $srcdir"
 
-    echo "Building C modules from $srcdir"
-    make distclean || true
-    ./00boot
-    ./configure --prefix=$prefix $flags CC="$cc" CFLAGS="$cflags"
-    make -j $nprocs
-    make install
+        cd $srcdir
+        if [[ ! $dry ]]; then
+            make distclean || true
+            ./00boot
+            ./configure --prefix=$prefix $flags CC="$cc" CFLAGS="$cflags"
+            make -j $nprocs
+            make install
+        fi
+    else
+        # Build only the requested C modules.
+        for m in $@; do
+            # Check that this module really exists.
+            local dir=$srcdir/$m
+            [[ ! -d $dir ]] && echo "Could not find C module $m" && continue
 
-    # Generate lscsoftrc.
-    . $scriptdir/generate-rc $prefix $lscsoftrc
-}
-
-make_python() {
-    [[ ! -f $lscsoftrc ]] && fail "Could not find $lscsoftrc"
-    . $lscsoftrc
-
-    echo "Building $srcdir/pylal"
-    cd $srcdir/pylal
-    rm -rf build
-    python setup.py install --prefix=$prefix
-    . $lscsoftrc
-
-    echo "Building $srcdir/glue"
-    cd $srcdir/glue
-    rm -rf build
-    python setup.py install --prefix=$prefix
-    . $lscsoftrc
-}
-
-if [[ ! $buildc && ! $buildpython ]]; then
-    # Build both.
-    make_c
-    make_python
-else
-    if [[ $buildc ]]; then
-        make_c
+            echo "Building $dir"
+            cd $dir
+            if [[ ! $dry ]]; then
+                make distclean || true
+                ./00boot
+                ./configure --prefix=$prefix $flags CC="$cc" CFLAGS="$cflags"
+                make -j $nprocs
+                make install
+            fi
+        done
     fi
+}
 
-    if [[ $buildpython ]]; then
+# Code to install Python modules. Again, can either install all of them or individual ones.
+pythonmodules="glue pylal"
+make_python() {
+    # We need the rc file, so check that it's there and then source it.
+    [[ ! -f $lscsoftrc ]] && fail "Could not find $lscsoftrc"
+    [[ $dry ]] || . $lscsoftrc
+
+    # If no modules were requested, build all of them.
+    local modules=$@
+    [[ $# == 0 ]] && modules=$pythonmodules
+
+    for m in $modules; do
+        # Check that the module exists.
+        local dir=$srcdir/$m
+        [[ ! -d $dir ]] && echo "Could not find Python module $m" && continue
+
+        # Now build it.
+        echo "Building $dir"
+        cd $dir
+        if [[ ! $dry ]]; then
+            rm -rf build
+            python setup.py install --prefix=$prefix
+            . $lscsoftrc
+        fi
+    done
+}
+
+# Get the intersection of two word lists.
+intersection()
+{
+    comm -12 <(echo $1 | tr ' ' '\n' | sort) <(echo $2 | tr ' ' '\n' | sort)
+}
+
+# Generate the runtime file.
+generate_rc()
+{
+    local lscsoftrc=$prefix/etc/lscsoftrc
+    echo "Generating $lscsoftrc"
+    [[ $dry ]] || . $scriptdir/generate-rc $prefix $lscsoftrc
+}
+
+if [[ $modules ]]; then
+    # Build specified modules.
+    for m in $(intersection "$modules" "$cmodules"); do
+        make_c $m
+    done
+    generate_rc
+    for m in $(intersection "$modules" "$pythonmodules"); do
+        make_python $m
+    done
+else
+    # Build some combination of C and Python modules.
+    if [[ ! $buildc && ! $buildpython ]]; then
+        # Build both.
+        make_c && generate_rc
         make_python
+    else
+        # Build the ones the user asked for.
+        [[ $buildc ]] && make_c && generate_rc
+        [[ $buildpython ]] && make_python
     fi
 fi
