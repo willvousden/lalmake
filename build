@@ -85,7 +85,13 @@ set -e
 srcdir=$(readlink -f $srcdir)
 
 # Remember script directory.
-scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Common flags to every configure process.
+flags=${flags:-"--enable-swig-python --enable-mpi --disable-laldetchar"}
+
+# Number of build processes.
+nprocs=${nprocs:-4}
 
 # Compiler details.
 cflags="-march=native -g"
@@ -99,16 +105,6 @@ if [[ $cc ]]; then
     echo "Building with $cc $cflags."
 else
     echo "Building with default CC with $cflags."
-fi
-
-# Common flags to every configure process.
-if [[ ! $flags ]]; then
-    flags="--enable-swig-python --enable-mpi --disable-laldetchar"
-fi
-
-# Number of build processes.
-if [[ ! $nprocs ]]; then
-    nprocs=4
 fi
 
 echo "Installing to $prefix"
@@ -181,7 +177,7 @@ intersection()
     comm -12 <(echo $1 | tr ' ' '\n' | sort) <(echo $2 | tr ' ' '\n' | sort)
 }
 
-# Generate the runtime file.
+# Generate the runtime config file.
 generate_rc()
 {
     local lscsoftrc=$prefix/etc/lscsoftrc
@@ -189,26 +185,25 @@ generate_rc()
     [[ $dry ]] || . $scriptdir/generate-rc $prefix $lscsoftrc
 }
 
-if [[ $modules ]]; then
-    # Build specified modules.
-    for m in $(intersection "$modules" "$cmodules"); do
-        make_c $m
-    done
-    generate_rc
-    for m in $(intersection "$modules" "$pythonmodules"); do
-        make_python $m
-    done
-else
+if [[ ! $modules ]]; then
     # Build some combination of C and Python modules.
     if [[ ! $buildc && ! $buildpython ]]; then
         # Build both.
-        make_c && generate_rc
-        make_python
+        modules="$cmodules $pythonmodules"
     else
         # Build the ones the user asked for.
-        [[ $buildc ]] && make_c && generate_rc
-        [[ $buildpython ]] && make_python
+        [[ $buildc ]] && modules=$cmodules
+        [[ $buildpython ]] && modules="$modules $pythonmodules"
     fi
 fi
+
+# Build specified modules.
+for m in $(intersection "$modules" "$cmodules"); do
+    make_c $m
+done
+generate_rc
+for m in $(intersection "$modules" "$pythonmodules"); do
+    make_python $m
+done
 
 echo "All done!"
