@@ -68,7 +68,7 @@ else
                 shift;;
             -d | --dry)
                 dry=true;;
-            -b | --branch)
+            -b | --branched)
                 branched=true;;
             -h | --help)
                 usage;;
@@ -114,7 +114,7 @@ fi
 cd $srcdir
 if [[ $branched ]]; then
     commit=$(git symbolic-ref --short HEAD)
-    prefix="$prefix/commit"
+    prefix="$prefix/$commit"
 fi
 
 echo "Installing to $prefix"
