@@ -145,12 +145,12 @@ make_c() {
 }
 
 lscsoftuserenv=$prefix/lscsoft-user-env.sh
+[[ -f $lscsoftuserenv ]] || fail "Could not find $lscsoftuserenv; perhaps lscsoft-user-env is not installed?"
 
 # Code to install Python modules. Again, can either install all of them or individual ones.
 pythonmodules="glue pylal"
 make_python() {
-    # We need the rc file, so check that it's there and then source it.
-    [[ -f $lscsoftuserenv ]] || fail "Could not find $lscsoftuserenv"
+    # Source the runtime config file.
     [[ $dry ]] || . $lscsoftuserenv
 
     # If no modules were requested, build all of them.
@@ -199,7 +199,7 @@ if [[ ! $modules ]]; then
 fi
 
 # Build specified modules.
-. $lscsoftuserenv
+[[ $dry ]] || . $lscsoftuserenv
 for m in $(intersection "$modules" "$cmodules"); do
     make_c $m
 done
@@ -207,5 +207,5 @@ for m in $(intersection "$modules" "$pythonmodules"); do
     make_python $m
 done
 
-. $lscsoftuserenv
+[[ $dry ]] || . $lscsoftuserenv
 echo "All done!"
