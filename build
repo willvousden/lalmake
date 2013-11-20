@@ -124,7 +124,7 @@ cmodules="lalframe lalmetaio lalsimulation lalburst lalinspiral lalstochastic la
 make_c() {
     if [[ $# == 0 ]]; then
         # No modules requested, so do a full build of all C modules.
-        echo "Building C modules from $srcdir"
+        echo "Building (top-level) $srcdir"
 
         cd $srcdir
         if [[ ! $dry ]]; then
@@ -196,26 +196,27 @@ intersection()
     #[[ $dry ]] || . $scriptdir/generate-rc $prefix $lscsoftrc
 #}
 
+[[ $dry ]] || . $lscsoftuserenv
 if [[ ! $modules ]]; then
     # Build some combination of C and Python modules.
     if [[ ! $buildc && ! $buildpython ]]; then
         # Build both.
-        modules="$cmodules $pythonmodules"
+        make_c
+        make_python
     else
         # Build the ones the user asked for.
-        [[ $buildc ]] && modules=$cmodules
-        [[ $buildpython ]] && modules="$modules $pythonmodules"
+        [[ $buildc ]] && make_c
+        [[ $buildpython ]] && make_python
     fi
+else
+    # Build specified modules.
+    for m in $(intersection "$modules" "$cmodules"); do
+        make_c $m
+    done
+    for m in $(intersection "$modules" "$pythonmodules"); do
+        make_python $m
+    done
 fi
-
-# Build specified modules.
-[[ $dry ]] || . $lscsoftuserenv
-for m in $(intersection "$modules" "$cmodules"); do
-    make_c $m
-done
-for m in $(intersection "$modules" "$pythonmodules"); do
-    make_python $m
-done
 
 [[ $dry ]] || . $lscsoftuserenv
 echo "All done!"
