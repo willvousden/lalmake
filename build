@@ -144,12 +144,14 @@ make_c() {
     fi
 }
 
+lscsoftuserenv=$prefix/lscsoft-user-env.sh
+
 # Code to install Python modules. Again, can either install all of them or individual ones.
 pythonmodules="glue pylal"
 make_python() {
     # We need the rc file, so check that it's there and then source it.
-    [[ ! -f $lscsoftrc ]] && fail "Could not find $lscsoftrc"
-    [[ $dry ]] || . $lscsoftrc
+    [[ -f $lscsoftuserenv ]] || fail "Could not find $lscsoftuserenv"
+    [[ $dry ]] || . $lscsoftuserenv
 
     # If no modules were requested, build all of them.
     local modules=$@
@@ -166,7 +168,6 @@ make_python() {
         if [[ ! $dry ]]; then
             rm -rf build
             python setup.py install --prefix=$prefix || fail
-            . $lscsoftrc
         fi
     done
 }
@@ -177,13 +178,13 @@ intersection()
     comm -12 <(echo $1 | tr ' ' '\n' | sort) <(echo $2 | tr ' ' '\n' | sort)
 }
 
-# Generate the runtime config file.
-generate_rc()
-{
-    local lscsoftrc=$prefix/etc/lscsoftrc
-    echo "Generating $lscsoftrc"
-    [[ $dry ]] || . $scriptdir/generate-rc $prefix $lscsoftrc
-}
+## Generate the runtime config file.
+#lscsoftrc=$prefix/etc/lscsoftrc
+#generate_rc()
+#{
+    #echo "Generating $lscsoftrc"
+    #[[ $dry ]] || . $scriptdir/generate-rc $prefix $lscsoftrc
+#}
 
 if [[ ! $modules ]]; then
     # Build some combination of C and Python modules.
@@ -198,12 +199,13 @@ if [[ ! $modules ]]; then
 fi
 
 # Build specified modules.
+. $lscsoftuserenv
 for m in $(intersection "$modules" "$cmodules"); do
     make_c $m
 done
-generate_rc
 for m in $(intersection "$modules" "$pythonmodules"); do
     make_python $m
 done
 
+. $lscsoftuserenv
 echo "All done!"
