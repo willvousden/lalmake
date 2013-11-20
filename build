@@ -26,6 +26,8 @@ Optional arguments:
     -p, --python                        Build all Python modules.
     -n, --nprocs <n>                    Number of build processes to spawn. Defaults to 4.
     -C, --cc                            The C compiler to use. Defaults to clang if available, otherwise system default.
+    -F, --flags <flags>                 Flags to pass into the configure processed. Defaults to --enable-swig-python --enable --disable-laldetchar.
+    -b, --branched                      Build in a separate subdirectory for the current Git branch.
     -d, --dry                           Dry run: go through the motions but don't do anything.
     -h, --help                          Display this help message.
 
@@ -66,6 +68,8 @@ else
                 shift;;
             -d | --dry)
                 dry=true;;
+            -b | --branch)
+                branched=true;;
             -h | --help)
                 usage;;
             --)
@@ -83,8 +87,8 @@ set -e
 [[ ! -d $srcdir ]] && fail "Invalid source directory!"
 srcdir=$(readlink -f $srcdir)
 
-# Remember script directory.
-scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+## Remember script directory.
+#scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Common flags to every configure process.
 flags=${flags:-"--enable-swig-python --enable-mpi --disable-laldetchar"}
@@ -104,6 +108,13 @@ if [[ $cc ]]; then
     echo "Building with $cc $cflags."
 else
     echo "Building with default CC with $cflags."
+fi
+
+# Build in separate directory for this branch?
+cd $srcdir
+if [[ $branched ]]; then
+    commit=$(git symbolic-ref --short HEAD)
+    prefix="$prefix/commit"
 fi
 
 echo "Installing to $prefix"
