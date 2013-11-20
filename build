@@ -37,7 +37,7 @@ EOF
 }
 
 prog=$(basename "$0")
-options=$(getopt --name "$prog" --options m:cpn:C:F:dh --longoptions modules:,c,python,prefix:,src:,nprocs:,cc:,flags:,dry,help -- $@ 2> /dev/null) || fail "Couldn't parse options."
+options=$(getopt --name "$prog" --options m:cpn:C:F:bdh --longoptions modules:,c,python,prefix:,src:,nprocs:,cc:,flags:,branched,dry,help -- $@ 2> /dev/null) || fail "Couldn't parse options."
 eval set -- "$options"
 if [[ $# < 2 ]]; then
     usage
