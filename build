@@ -87,8 +87,8 @@ set -e
 [[ ! -d $srcdir ]] && fail "Invalid source directory!"
 srcdir=$(readlink -f $srcdir)
 
-## Remember script directory.
-#scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Remember script directory.
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Common flags to every configure process.
 flags=${flags:-"--enable-swig-python --enable-mpi --disable-laldetchar"}
