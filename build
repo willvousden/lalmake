@@ -40,7 +40,6 @@ eval set -- "$options"
 if [[ $# < 2 ]]; then
     usage
 else
-    echo $@
     while [[ $# > 0 ]]; do
         case "$1" in
             --prefix)
