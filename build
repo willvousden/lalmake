@@ -39,10 +39,10 @@ EOF
 prog=$(basename "$0")
 options=$(getopt --name "$prog" --options m:cpn:C:F:bdh --longoptions modules:,c,python,prefix:,src:,nprocs:,cc:,flags:,branched,dry,help -- $@ 2> /dev/null) || fail "Couldn't parse options."
 eval set -- "$options"
-if [[ $# < 2 ]]; then
+if (( $# < 2 )); then
     usage
 else
-    while [[ $# > 0 ]]; do
+    while (( $# > 0 )); do
         case "$1" in
             --prefix)
                 prefix=$2
