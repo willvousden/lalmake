@@ -21,12 +21,12 @@ Arguments:
     --src <src-dir>                     Build from <src-dir>.
 
 Optional arguments:
-    -m, --modules <mod1,mod2,...>       Individual modules to build
+    -m, --modules <mod1,mod2,...>       Individual modules to build.
     -c, --c                             Build all C modules.
     -p, --python                        Build all Python modules.
     -n, --nprocs <n>                    Number of build processes to spawn. Defaults to 4.
     -C, --cc                            The C compiler to use. Defaults to clang if available, otherwise system default.
-    -F, --flags <flags>                 Flags to pass into the configure processed. Defaults to --enable-swig-python --enable --disable-laldetchar.
+    -F, --flags <flags>                 Flags to pass into the configure processed. Defaults to --enable-swig-python --enable-mpi --disable-laldetchar.
     -b, --branched                      Build in a separate subdirectory for the current Git branch.
     -d, --dry                           Dry run: go through the motions but don't do anything.
     -h, --help                          Display this help message.
