@@ -105,9 +105,9 @@ if [[ ! $cc ]]; then
     fi
 fi
 if [[ $cc ]]; then
-    echo "Building with $cc $cflags."
+    echo "Building with \`$cc $cflags'."
 else
-    echo "Building with default CC with $cflags."
+    echo "Building with default CC with \`$cflags'."
 fi
 
 # Build in separate directory for this branch?
