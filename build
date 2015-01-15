@@ -94,10 +94,10 @@ scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 flags=${flags:-"--enable-swig-python --enable-mpi --disable-laldetchar"}
 
 # Number of build processes.
-nprocs=${nprocs:-4}
+nprocs=${nprocs:-$(nprocs)}
 
 # Compiler details.
-cflags="-march=native -g"
+cflags="-g"
 if [[ ! $cc ]]; then
     # User didn't specify CC at command line.
     if [[ -x $(which clang) ]]; then
@@ -105,10 +105,11 @@ if [[ ! $cc ]]; then
     fi
 fi
 if [[ $cc ]]; then
-    echo "Building with \`$cc $cflags'."
+    echo -n "Building with \`$cc $cflags'"
 else
-    echo "Building with default CC with \`$cflags'."
+    echo -n "Building with default CC with \`$cflags'"
 fi
+echo " ($nprocs jobs)."
 
 # Build in separate directory for this branch?
 cd $srcdir
@@ -143,7 +144,7 @@ make_c() {
             make distclean || true
             ./00boot || fail
             ./configure --prefix=$prefix $flags CC="$cc" CFLAGS="$cflags" || fail
-            make -j $nprocs || fail
+            make -j$nprocs || fail
             make install || fail
         fi
     else
